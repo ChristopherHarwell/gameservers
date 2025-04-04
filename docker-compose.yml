@@ -1,0 +1,62 @@
+services:
+  palworld:
+    image: thijsvanloef/palworld-server-docker:latest
+    restart: always
+    container_name: palworld-server
+    ports:
+      - 8211:8211/udp
+      - 27015:27015/udp
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - PORT=8211
+      - PLAYERS=16
+      - MULTITHREADING=true
+      - RCON_ENABLED=true
+      - RCON_PORT=25575
+      - TZ=UTC
+      - SERVER_NAME="Yggdrasil"
+      - EXP_RATE=4.000000
+      - PAL_CAPTURE_RATE=2.000000
+      - PAL_SPAWN_NUM_RATE=1.000000
+    volumes:
+      - /opt/palworld/data:/palworld
+    networks:
+      - network1
+
+  valheim:
+    image: ghcr.io/lloesche/valheim-server
+    cap_add:
+      - sys_nice
+    stop_grace_period: "120s"
+    ports:
+      - 2456-2458:2456-2458/udp
+    restart: always
+    volumes:
+      - $HOME/valheim/config:/config
+      - $HOME/valheim/data:/opt/valheim
+    networks:
+      - network2
+    environment:
+      - SERVER_NAME=Yggdrasil
+      - WORLD_NAME=Yggdasil
+      - SERVER_PASS=""
+
+  watchtower:
+    image: containrrr/watchtower
+    restart: always
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - network1
+      - network2
+    command: >
+      --cleanup=true
+
+networks:
+  network1:
+    name: palworld_network
+  network2:
+    name: valheim_network
+
